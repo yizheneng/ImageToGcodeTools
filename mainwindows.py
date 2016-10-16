@@ -13,7 +13,9 @@ class MainWindow(QWidget):
         self.layout = QVBoxLayout()
         self.pixLayout = QHBoxLayout()
         self.thresholdLayout = QHBoxLayout()
+        self.timeLayout = QHBoxLayout()
         self.setLayout(self.mainLayout)
+        self.setWindowTitle("Image To Gcode ----- build By yizheneng kangbo0303@163.com")
         
         self.imageLabel = QLabel("image")
         
@@ -36,6 +38,12 @@ class MainWindow(QWidget):
         self.thresholdLayout.addWidget(self.thresholdLabel)
         self.thresholdLayout.addWidget(self.thresholdSpinBox)
         
+        self.timeLabel = QLabel(u"灼烧时间:")
+        self.timeDoubleSpinBox = QDoubleSpinBox()
+        self.timeDoubleSpinBox.setValue(0.3)
+        self.timeLayout.addWidget(self.timeLabel)
+        self.timeLayout.addWidget(self.timeDoubleSpinBox)
+        
         self.loadImageButton = QPushButton(u"加载图片")
         self.loadImageButton.clicked.connect(self.LoadImageButtonClicked)
         self.previewButton = QPushButton(u"预览")
@@ -46,6 +54,7 @@ class MainWindow(QWidget):
         
         self.layout.addLayout(self.pixLayout)
         self.layout.addLayout(self.thresholdLayout)
+        self.layout.addLayout(self.timeLayout)
         self.layout.addWidget(self.loadImageButton)
         self.layout.addWidget(self.previewButton)
         self.layout.addWidget(self.makeCodeButton)
@@ -108,14 +117,14 @@ class MainWindow(QWidget):
                     if self.srcImage.pixelIndex(i, j) < 128:
                         f.write("G0 X%f\n" % (j * self.pixDoubleSpinBox.value()))
                         f.write("M3\n")
-                        f.write("G4 P%f\n" % 0.3)
+                        f.write("G4 P%f\n" % self.timeDoubleSpinBox.value())
                         f.write("M5\n")
             else:
                 for j in range(self.grayImage.height())[::-1]:
                     if self.srcImage.pixelIndex(i, j) < 128:
                         f.write("G0 X%f\n" % (j * self.pixDoubleSpinBox.value()))
                         f.write("M3\n")
-                        f.write("G4 P%f\n" % 0.3)
+                        f.write("G4 P%f\n" % self.timeDoubleSpinBox.value())
                         f.write("M5\n")
                     
         f.write("M5\n")
