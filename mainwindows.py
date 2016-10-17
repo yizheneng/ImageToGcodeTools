@@ -6,6 +6,7 @@ from PyQt4.Qt import QWidget, QVBoxLayout, QDoubleSpinBox, QHBoxLayout, QFileDia
     QImage, qRgb, QLabel
     
 import cv2 as cv
+import numpy as np
 
 class MainWindow(QWidget):
     def __init__(self):
@@ -100,7 +101,13 @@ class MainWindow(QWidget):
                     self.grayImage.setPixel(i, j, 0)
                     
         if self.chooseBox.isChecked():
-            print "check box"
+            img = np.zeros((self.grayImage.width(), self.grayImage.height(), 1), np.uint8)
+            for i in range(self.srcImage.width()):
+                for j in range(self.srcImage.height()):
+                    img[j, i] = self.srcImage.pixelIndex(i, j)
+            contours = cv.findContours(img, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
+            print contours
+            cv.imshow("12", img)
             
         self.imageLabel.setPixmap(QPixmap(self.grayImage))
         
