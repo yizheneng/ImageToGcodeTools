@@ -1,8 +1,11 @@
 #coding=utf-8
-from PyQt4.QtGui import QMainWindow, QLabel, QSpinBox, QPushButton, QPixmap,\
-    qGray
+from PyQt4.QtGui import QMainWindow, QSpinBox, QPushButton, QPixmap,\
+    qGray, QCheckBox
+    
 from PyQt4.Qt import QWidget, QVBoxLayout, QDoubleSpinBox, QHBoxLayout, QFileDialog, QMessageBox,\
-    QImage, qRgb, QVector2D
+    QImage, qRgb, QLabel
+    
+import cv2 as cv
 
 class MainWindow(QWidget):
     def __init__(self):
@@ -10,6 +13,7 @@ class MainWindow(QWidget):
         self.resize(500, 300)
         
         self.mainLayout = QHBoxLayout()
+        self.chooseLayout = QHBoxLayout()
         self.layout = QVBoxLayout()
         self.pixLayout = QHBoxLayout()
         self.thresholdLayout = QHBoxLayout()
@@ -45,6 +49,11 @@ class MainWindow(QWidget):
         self.timeLayout.addWidget(self.timeLabel)
         self.timeLayout.addWidget(self.timeDoubleSpinBox)
         
+        self.chooseLabel = QLabel(u"只雕刻轮廓:")
+        self.chooseBox = QCheckBox()
+        self.chooseLayout.addWidget(self.chooseLabel)
+        self.chooseLayout.addWidget(self.chooseBox)
+        
         self.loadImageButton = QPushButton(u"加载图片")
         self.loadImageButton.clicked.connect(self.LoadImageButtonClicked)
         self.previewButton = QPushButton(u"预览")
@@ -56,6 +65,7 @@ class MainWindow(QWidget):
         self.layout.addLayout(self.pixLayout)
         self.layout.addLayout(self.thresholdLayout)
         self.layout.addLayout(self.timeLayout)
+        self.layout.addLayout(self.chooseLayout)
         self.layout.addWidget(self.loadImageButton)
         self.layout.addWidget(self.previewButton)
         self.layout.addWidget(self.makeCodeButton)
@@ -88,7 +98,10 @@ class MainWindow(QWidget):
                     self.grayImage.setPixel(i, j, 255)
                 else:
                     self.grayImage.setPixel(i, j, 0)
-        
+                    
+        if self.chooseBox.isChecked():
+            print "check box"
+            
         self.imageLabel.setPixmap(QPixmap(self.grayImage))
         
     def MakeGcode(self):
