@@ -27,6 +27,7 @@ class MainWindow(QWidget):
         self.pixLengthLabel = QLabel(u"像素大小(mm):")
         self.pixDoubleSpinBox = QDoubleSpinBox()
         self.pixDoubleSpinBox.setValue(1)
+        self.pixDoubleSpinBox.setDecimals(6)
         self.pixLayout.addWidget(self.pixLengthLabel)
         self.pixLayout.addWidget(self.pixDoubleSpinBox)
         
