@@ -21,7 +21,7 @@ class MainWindow(QWidget):
         self.timeLayout = QHBoxLayout()
         self.contoursLayout = QHBoxLayout()
         self.setLayout(self.mainLayout)
-        self.setWindowTitle("Image To Gcode ----- build By yizheneng kangbo0303@163.com")
+        self.setWindowTitle("Image To Gcode V1.0 ----- build By yizheneng kangbo0303@163.com")
         
         self.imageLabel = QLabel("image")
         
