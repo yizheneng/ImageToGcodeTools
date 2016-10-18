@@ -19,6 +19,7 @@ class MainWindow(QWidget):
         self.pixLayout = QHBoxLayout()
         self.thresholdLayout = QHBoxLayout()
         self.timeLayout = QHBoxLayout()
+        self.contoursLayout = QHBoxLayout()
         self.setLayout(self.mainLayout)
         self.setWindowTitle("Image To Gcode ----- build By yizheneng kangbo0303@163.com")
         
@@ -54,6 +55,15 @@ class MainWindow(QWidget):
         self.chooseBox = QCheckBox()
         self.chooseLayout.addWidget(self.chooseLabel)
         self.chooseLayout.addWidget(self.chooseBox)
+        self.chooseBox.stateChanged.connect(self.ChooseValChanged)
+        
+        self.contoursWidthLabel = QLabel(u"边框宽度")
+        self.ContoursWidthSpinBox = QSpinBox()
+        self.ContoursWidthSpinBox.setEnabled(False)
+        self.ContoursWidthSpinBox.setValue(1)
+        self.contoursLayout.addWidget(self.contoursWidthLabel)
+        self.contoursLayout.addWidget(self.ContoursWidthSpinBox)
+        
         
         self.loadImageButton = QPushButton(u"加载图片")
         self.loadImageButton.clicked.connect(self.LoadImageButtonClicked)
@@ -67,6 +77,7 @@ class MainWindow(QWidget):
         self.layout.addLayout(self.thresholdLayout)
         self.layout.addLayout(self.timeLayout)
         self.layout.addLayout(self.chooseLayout)
+        self.layout.addLayout(self.contoursLayout)
         self.layout.addWidget(self.loadImageButton)
         self.layout.addWidget(self.previewButton)
         self.layout.addWidget(self.makeCodeButton)
@@ -89,8 +100,12 @@ class MainWindow(QWidget):
                 self.grayImage.setPixel(i, j, temp)
         
         self.srcImage = QImage(self.grayImage)
+        self.resultImage = QImage(self.grayImage)
         self.imageLabel.setPixmap(QPixmap(self.srcImage))
-        
+    
+    def ChooseValChanged(self):
+        self.ContoursWidthSpinBox.setEnabled(self.chooseBox.isChecked())
+    
     def ThresholdValChange(self):
         for i in range(self.srcImage.width()):
             for j in range(self.srcImage.height()):
@@ -99,17 +114,26 @@ class MainWindow(QWidget):
                     self.grayImage.setPixel(i, j, 255)
                 else:
                     self.grayImage.setPixel(i, j, 0)
-                    
+        self.resultImage = QImage(self.grayImage)
+        #如果选中了只雕刻轮廓            
         if self.chooseBox.isChecked():
-            img = np.zeros((self.grayImage.width(), self.grayImage.height(), 1), np.uint8)
-            for i in range(self.srcImage.width()):
-                for j in range(self.srcImage.height()):
-                    img[j, i] = self.srcImage.pixelIndex(i, j)
+            img = np.zeros((self.grayImage.height(), self.grayImage.width(), 1), np.uint8)
+            for i in range(self.grayImage.width()):
+                for j in range(self.grayImage.height()):
+                    img[j, i] = self.grayImage.pixelIndex(i, j)
+            #提取轮廓        
             contours = cv.findContours(img, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE)
-            print contours
-            cv.imshow("12", img)
+            img = np.zeros((self.grayImage.height(), self.grayImage.width(), 1), np.uint8)
+            cv.drawContours(img, contours[1][:-1], -1, (255, 255, 255), self.ContoursWidthSpinBox.value())
+            #转换轮廓到显示界面
+            for i in range(self.resultImage.width()):
+                for j in range(self.resultImage.height()):
+                    if img[j, i] == 0:
+                        self.resultImage.setPixel(i, j, 255)
+                    else:
+                        self.resultImage.setPixel(i, j, 0)
             
-        self.imageLabel.setPixmap(QPixmap(self.grayImage))
+        self.imageLabel.setPixmap(QPixmap(self.resultImage))
         
     def MakeGcode(self):
         path = QFileDialog.getSaveFileName(self, u"选择保存路径", "", " (*.nc)")
@@ -120,11 +144,11 @@ class MainWindow(QWidget):
         f = open(path, 'w')
         f.write("M5\n")
         
-        for i in range(self.grayImage.width()):
+        for i in range(self.resultImage.width()):
             flag = False
             #检测这一行是否有点
-            for j in range(self.grayImage.height()):
-                if self.srcImage.pixelIndex(i, j) < 128:
+            for j in range(self.resultImage.height()):
+                if self.resultImage.pixelIndex(i, j) < 128:
                     flag = True
                     break
             #如果这一行都没有点则跳过这一行
@@ -134,15 +158,15 @@ class MainWindow(QWidget):
                 continue
             
             if (i % 2) > 0:
-                for j in range(self.grayImage.height()):
-                    if self.srcImage.pixelIndex(i, j) < 128:
+                for j in range(self.resultImage.height()):
+                    if self.resultImage.pixelIndex(i, j) < 128:
                         f.write("G0 X%f\n" % (j * self.pixDoubleSpinBox.value()))
                         f.write("M3\n")
                         f.write("G4 P%f\n" % self.timeDoubleSpinBox.value())
                         f.write("M5\n")
             else:
-                for j in range(self.grayImage.height())[::-1]:
-                    if self.srcImage.pixelIndex(i, j) < 128:
+                for j in range(self.resultImage.height())[::-1]:
+                    if self.resultImage.pixelIndex(i, j) < 128:
                         f.write("G0 X%f\n" % (j * self.pixDoubleSpinBox.value()))
                         f.write("M3\n")
                         f.write("G4 P%f\n" % self.timeDoubleSpinBox.value())
