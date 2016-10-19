@@ -157,6 +157,7 @@ class MainWindow(QWidget):
         
         if self.continuousBox.isChecked() and self.chooseBox.isChecked():
             for contour in self.contours:
+                f.write("G0 X%f Y%f\n" % ((contour[0][0][0] * self.pixDoubleSpinBox.value()), (contour[0][0][1] * self.pixDoubleSpinBox.value())))
                 f.write("M3\n")
                 for con in contour:
                     f.write("G0 X%f Y%f\n" % ((con[0][0] * self.pixDoubleSpinBox.value()), (con[0][1] * self.pixDoubleSpinBox.value())))
